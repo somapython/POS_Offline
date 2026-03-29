@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>POS Loading</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      width: 360px;
+      padding: 30px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #22c55e, #3b82f6);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      text-align: center;
+      color: white;
+      position: relative;
+    }
+
+    /* .logo {
+      width: 80px;
+      margin-bottom: 10px;
+      animation: fadeIn 1s ease;
+    } */
+
+    .logo {
+      width: 80px;
+      margin-bottom: 10px;
+      animation: rotateLogo 3s linear infinite;
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .version {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 20px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 15px;
+    }
+
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #facc15, #22c55e);
+      transition: width 0.4s ease;
+    }
+
+    .text {
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .percent {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      width: 100%;
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .license {
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    /* @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    } */
+
+    @keyframes rotateLogo {
+      0% { transform: rotateY(0deg); }
+      100% { transform: rotateY(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+
+    <!-- LOGO -->
+    <img src="images/favicon/company_logo.png" class="logo" />
+
+    <!-- AUDIO -->
+    <audio id="loaderSound" autoplay loop>
+        <source src="./assets/loading.mp3" type="audio/mp3" />
+    </audio>
+
+    <!-- TITLE -->
+    <div class="title">POS System</div>
+    <div class="version" id="version">v1.0.0</div>
+
+    <!-- PROGRESS -->
+    <div class="progress-bar">
+      <div id="progress" class="progress"></div>
+    </div>
+
+    <div id="loading-text" class="text">Starting...</div>
+    <div id="percent" class="percent">0%</div>
+
+    <!-- LICENSE -->
+    <div id="license" class="license">Checking License...</div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      Powered by POS 🚀
+    </div>
+
+  </div>
+
+  <script>
+    const { ipcRenderer } = require("electron");
+
+    const steps = [
+      "Initializing System",
+      "Checking License",
+      "Loading Database",
+      "Preparing UI",
+      "Launching POS"
+    ];
+
+    ipcRenderer.on("loading-progress", (event, percent) => {
+      if (percent >= 100) {
+        const sound = document.getElementById("loaderSound");
+        sound.pause();
+      }
+      document.getElementById("progress").style.width = percent + "%";
+      document.getElementById("percent").innerText = percent + "%";
+
+      const stepIndex = Math.floor(percent / 20);
+      document.getElementById("loading-text").innerText =
+        steps[stepIndex] || "Done";
+    });
+
+    ipcRenderer.on("app-version", (event, version) => {
+      document.getElementById("version").innerText = "v" + version;
+    });
+
+    ipcRenderer.on("license-status", (event, status) => {
+      const el = document.getElementById("license");
+
+      if (status === "valid") {
+        el.innerText = "License Verified ✅";
+        el.style.color = "#bbf7d0";
+      } else {
+        el.innerText = "Trial Mode ⚠️";
+        el.style.color = "#fde68a";
+      }
+    });
+  </script>
+
+</body>
+</html>
